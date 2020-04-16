@@ -1,5 +1,4 @@
 require "net/https"
-require "nokogiri"
 require "nori"
 require "cgi"
 
@@ -43,7 +42,7 @@ module GContacts
       raise ArgumentError, "Unsupported type given" unless uri
 
       response = http_request(:get, URI(uri[:all] % (args.delete(:type) || :full)), args)
-      List.new(Nori.parse(response, :nokogiri))
+      List.new(nori_parser.parse(response))
     end
 
     ##
@@ -63,7 +62,7 @@ module GContacts
       uri = URI(uri[:all] % (args.delete(:type) || :full))
 
       while true do
-        list = List.new(Nori.parse(http_request(:get, uri, args), :nokogiri))
+        list = List.new(nori_parser.parse(http_request(:get, uri, args)))
         list.each {|entry| yield entry}
 
         # Nothing left to paginate
@@ -96,7 +95,7 @@ module GContacts
       uri = API_URI[args.delete(:api_type) || @options[:default_type]]
       raise ArgumentError, "Unsupported type given" unless uri
 
-      response = Nori.parse(http_request(:get, URI(uri[:get] % [args.delete(:type) || :full, id]), args), :nokogiri)
+      response = nori_parser.parse(http_request(:get, URI(uri[:get] % [args.delete(:type) || :full, id]), args))
 
       if response and response["entry"]
         Element.new(response["entry"])
@@ -120,7 +119,7 @@ module GContacts
 
       xml = "<?xml version='1.0' encoding='UTF-8'?>\n#{element.to_xml}"
 
-      data = Nori.parse(http_request(:post, uri[:create], :body => xml, :headers => {"Content-Type" => "application/atom+xml"}), :nokogiri)
+      data = nori_parser.parse(http_request(:post, uri[:create], :body => xml, :headers => {"Content-Type" => "application/atom+xml"}))
       unless data["entry"]
         raise InvalidResponse, "Created but response wasn't a valid element"
       end
@@ -144,7 +143,7 @@ module GContacts
 
       xml = "<?xml version='1.0' encoding='UTF-8'?>\n#{element.to_xml}"
 
-      data = Nori.parse(http_request(:put, URI(uri[:get] % [:base, File.basename(element.id)]), :body => xml, :headers => {"Content-Type" => "application/atom+xml", "If-Match" => element.etag}), :nokogiri)
+      data = nori_parser.parse(http_request(:put, URI(uri[:get] % [:base, File.basename(element.id)]), :body => xml, :headers => {"Content-Type" => "application/atom+xml", "If-Match" => element.etag}))
       unless data["entry"]
         raise InvalidResponse, "Updated but response wasn't a valid element"
       end
@@ -197,7 +196,7 @@ module GContacts
       xml << "</feed>"
 
       results = http_request(:post, uri[:batch], :body => xml, :headers => {"Content-Type" => "application/atom+xml"})
-      List.new(Nori.parse(results, :nokogiri))
+      List.new(nori_parser.parse(results))
     end
 
     private
@@ -260,6 +259,10 @@ module GContacts
       end
 
       response.body
+    end
+
+    def nori_parser
+      Nori.new(parser: :rexml, advanced_typecasting: false)
     end
   end
 end

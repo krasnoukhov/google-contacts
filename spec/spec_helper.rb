@@ -7,3 +7,7 @@ Dir["./spec/support/*.rb"].each {|file| require file}
 RSpec.configure do |c|
   c.mock_with :rspec
 end
+
+def nori_parser
+  Nori.new(parser: :rexml, advanced_typecasting: false)
+end

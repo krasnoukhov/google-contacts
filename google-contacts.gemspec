@@ -14,13 +14,12 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = ">= 1.3.6"
   s.rubyforge_project         = "google-contacts"
 
-  s.add_runtime_dependency "nokogiri", "~>1.9.1"
   s.add_runtime_dependency "nori", "~>2.6.0"
 
   s.add_runtime_dependency "jruby-openssl", "~>0.7.0" if RUBY_PLATFORM == "java"
 
-  s.add_development_dependency "rspec", "~>2.8.0"
-  s.add_development_dependency "guard-rspec", "~>0.6.0"
+  s.add_development_dependency "rspec", "~>3.9.0"
+  s.add_development_dependency "guard-rspec", "~>4.7.3"
 
   s.files        = Dir.glob("lib/**/*") + %w[GPL-LICENSE MIT-LICENSE README.md CHANGELOG.md Rakefile]
   s.require_path = "lib"
